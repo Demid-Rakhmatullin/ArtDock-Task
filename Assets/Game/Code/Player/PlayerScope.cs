@@ -1,7 +1,9 @@
+using Game.Interactions;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using static Game.Interactions.InteractionsKeys;
 
 namespace Game.Player
 {
@@ -10,6 +12,7 @@ namespace Game.Player
         [SerializeField] PlayerInputDispatcher _input;
         [SerializeField] CharacterController _controller;
         [SerializeField] Transform _mainTransform;
+        [SerializeField] Transform _gripPosition;
 
         List<LifetimeScope> _childScopes;
 
@@ -17,11 +20,16 @@ namespace Game.Player
         {
             _childScopes = new List<LifetimeScope>();
 
-            builder.RegisterComponent(_input);
-            builder.RegisterComponent(_controller);
             builder.RegisterComponent(_mainTransform);
+            builder.RegisterComponent(_input)
+                .AsImplementedInterfaces();
+            builder.RegisterComponent(_controller)
+                .As<Collider>();
+            builder.RegisterComponent(_gripPosition)
+                .Keyed(GRIP_POSITION);
 
             builder.RegisterEntryPoint<PlayerMoveService>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<GrabService>(Lifetime.Singleton);
 
             builder.RegisterBuildCallback(AfterConfigure);
             builder.RegisterDisposeCallback(OnDispose);

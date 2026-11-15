@@ -1,7 +1,7 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using static Game.Player.PlayerCameraScope;
+using static Game.Player.PlayerKeys;
 
 namespace Game.Player
 {
@@ -18,7 +18,7 @@ namespace Game.Player
 
         public PlayerCameraService(
             PlayerInputDispatcher input,
-            [Key(CAMERA_KEY)] Transform cameraTransform, 
+            [Key(CAMERA_MAIN)] Transform cameraTransform, 
             Transform playerTransform)
         {
             _input = input;
