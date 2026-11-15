@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -10,16 +11,20 @@ namespace Game.Player
         [SerializeField] CharacterController _controller;
         [SerializeField] Transform _mainTransform;
 
+        List<LifetimeScope> _childScopes;
+
         protected override void Configure(IContainerBuilder builder)
         {
-            Cursor.lockState = CursorLockMode.Locked;
+            _childScopes = new List<LifetimeScope>();
 
             builder.RegisterComponent(_input);
             builder.RegisterComponent(_controller);
             builder.RegisterComponent(_mainTransform);
 
-            builder.RegisterEntryPoint<PlayerMoveService>(Lifetime.Scoped);
+            builder.RegisterEntryPoint<PlayerMoveService>(Lifetime.Singleton);
+
             builder.RegisterBuildCallback(AfterConfigure);
+            builder.RegisterDisposeCallback(OnDispose);
         }
 
         private void AfterConfigure(IObjectResolver resolver)
@@ -29,8 +34,15 @@ namespace Game.Player
             {
                 cameraScope.Build();
             }
+            _childScopes.Add(cameraScope);
 
             _input.Enable();
+        }
+
+        private void OnDispose(IObjectResolver resolver)
+        {
+            foreach (var child in _childScopes)
+                child.DisposeCore();
         }
     }
 }

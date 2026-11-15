@@ -15,7 +15,7 @@ namespace Game.Player
             builder.RegisterComponent(_cameraTransform)
                 .Keyed(CAMERA_KEY);
 
-            builder.RegisterEntryPoint<PlayerCameraService>(Lifetime.Scoped);
+            builder.RegisterEntryPoint<PlayerCameraService>(Lifetime.Singleton);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace Game.Player
 
         public void Enable()
         {
+            Cursor.lockState = CursorLockMode.Locked;
             _playerInput.enabled = true;
         }
 
