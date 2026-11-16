@@ -6,6 +6,7 @@ using UnityEngine.Scripting;
 
 namespace Game.Player
 {
+    [DisallowMultipleComponent]
     class PlayerInputDispatcher : MonoBehaviour, IGrabDispatcher
     {
         [SerializeField] PlayerInput _playerInput;

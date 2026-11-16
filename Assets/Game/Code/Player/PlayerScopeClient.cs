@@ -7,12 +7,10 @@ using static Game.Interactions.InteractionsKeys;
 
 namespace Game.Player
 {
-    class PlayerScope : LifetimeScope
+    [DisallowMultipleComponent]
+    class PlayerScopeClient : LifetimeScope
     {
-        [SerializeField] PlayerInputDispatcher _input;
-        [SerializeField] CharacterController _controller;
-        [SerializeField] Transform _mainTransform;
-        [SerializeField] Transform _gripPosition;
+        [SerializeField] PlayerObject _object;
 
         List<LifetimeScope> _childScopes;
 
@@ -20,16 +18,18 @@ namespace Game.Player
         {
             _childScopes = new List<LifetimeScope>();
 
-            builder.RegisterComponent(_mainTransform);
-            builder.RegisterComponent(_input)
+            builder.RegisterComponent(_object.Input)
                 .AsImplementedInterfaces();
-            builder.RegisterComponent(_controller)
+            builder.RegisterComponent(_object.Controller)
                 .As<Collider>();
-            builder.RegisterComponent(_gripPosition)
+            builder.RegisterComponent(_object.Network)
+                .As<IGrabNetworkClient>();
+            builder.RegisterComponent(_object.MainTransform);
+            builder.RegisterComponent(_object.GripPosition)
                 .Keyed(GRIP_POSITION);
 
             builder.RegisterEntryPoint<PlayerMoveService>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<GrabService>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<GrabServiceClient>(Lifetime.Singleton);
 
             builder.RegisterBuildCallback(AfterConfigure);
             builder.RegisterDisposeCallback(OnDispose);
@@ -44,7 +44,7 @@ namespace Game.Player
             }
             _childScopes.Add(cameraScope);
 
-            _input.Enable();
+            _object.Input.Enable();
         }
 
         private void OnDispose(IObjectResolver resolver)

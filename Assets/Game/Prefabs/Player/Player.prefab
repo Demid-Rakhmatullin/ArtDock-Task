@@ -101,7 +101,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8382422471401602795}
+  - component: {fileID: 4509507913636107880}
   - component: {fileID: 3174165577067581950}
+  - component: {fileID: 7374091449903218456}
   - component: {fileID: 4542916802743227024}
   - component: {fileID: 4357740311855697659}
   - component: {fileID: 3804276739304620103}
@@ -132,6 +134,23 @@ Transform:
   - {fileID: 6561318067545952653}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4509507913636107880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6512406639307289768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c1f87b27b0898348bef18be85a4c24b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerObject
+  <Input>k__BackingField: {fileID: 4357740311855697659}
+  <Controller>k__BackingField: {fileID: 3804276739304620103}
+  <Network>k__BackingField: {fileID: -3869569563115169617}
+  <MainTransform>k__BackingField: {fileID: 8382422471401602795}
+  <GripPosition>k__BackingField: {fileID: 6561318067545952653}
 --- !u!114 &3174165577067581950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,10 +167,24 @@ MonoBehaviour:
     TypeName: 
   autoRun: 0
   autoInjectGameObjects: []
-  _input: {fileID: 4357740311855697659}
-  _controller: {fileID: 3804276739304620103}
-  _mainTransform: {fileID: 8382422471401602795}
-  _gripPosition: {fileID: 6561318067545952653}
+  _object: {fileID: 4509507913636107880}
+--- !u!114 &7374091449903218456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6512406639307289768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 546b717033dd5b245b6641f56d0ed109, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerScopeServer
+  parentReference:
+    TypeName: 
+  autoRun: 0
+  autoInjectGameObjects: []
+  _object: {fileID: 4509507913636107880}
 --- !u!114 &4542916802743227024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,7 +265,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3222015740
+  GlobalObjectIdHash: 3266642637
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -306,7 +339,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
-  _playerScope: {fileID: 3174165577067581950}
+  _clientScope: {fileID: 3174165577067581950}
+  _serverScope: {fileID: 7374091449903218456}
 --- !u!1 &7958581570022484532
 GameObject:
   m_ObjectHideFlags: 0

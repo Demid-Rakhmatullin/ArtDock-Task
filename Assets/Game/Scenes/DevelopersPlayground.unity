@@ -559,6 +559,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2036693248}
     m_Modifications:
+    - target: {fileID: 151656256406114339, guid: fdc16f0e4ab91df439743f6ad4e37ab9, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 151656256406114339, guid: fdc16f0e4ab91df439743f6ad4e37ab9, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2004880189
+      objectReference: {fileID: 0}
+    - target: {fileID: 151656256406114339, guid: fdc16f0e4ab91df439743f6ad4e37ab9, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 151656256406114339, guid: fdc16f0e4ab91df439743f6ad4e37ab9, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1151446819
+      objectReference: {fileID: 0}
     - target: {fileID: 5696612958154173501, guid: fdc16f0e4ab91df439743f6ad4e37ab9, type: 3}
       propertyPath: m_Name
       value: RedBlock

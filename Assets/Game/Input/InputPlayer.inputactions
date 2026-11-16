@@ -26,11 +26,11 @@
                 },
                 {
                     "name": "Grab",
-                    "type": "PassThrough",
+                    "type": "Button",
                     "id": "574690a2-c970-4a20-9c89-d713ad207ae0",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": false
                 },
                 {
