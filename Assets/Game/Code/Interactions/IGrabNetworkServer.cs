@@ -1,12 +1,11 @@
+using Game.Common;
 using System;
 using Unity.Netcode;
 
 namespace Game.Interactions
 {
-    public interface IGrabNetworkServer
-    {
-        ulong OwnerClientId { get; }
-
+    public interface IGrabNetworkServer : INetworkServer
+    {        
         Action <NetworkObject> GrabServer { set; }
 
         Action<NetworkObject> GrabReleaseServer { set; }

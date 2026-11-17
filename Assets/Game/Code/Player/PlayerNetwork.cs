@@ -1,4 +1,5 @@
 using Game.Interactions;
+using Game.Spawn;
 using System;
 using Unity.Netcode;
 using UnityEngine;
@@ -7,7 +8,9 @@ using VContainer.Unity;
 namespace Game.Player
 {
     [DisallowMultipleComponent]
-    class PlayerNetwork : NetworkBehaviour, IGrabNetworkClient, IGrabNetworkServer
+    class PlayerNetwork : NetworkBehaviour, 
+        IGrabNetworkClient, IGrabNetworkServer,
+        ISpawnerNetworkClient, ISpawnerNetworkServer
     {
         [SerializeField] LifetimeScope _clientScope;
         [SerializeField] LifetimeScope _serverScope;
@@ -66,6 +69,26 @@ namespace Game.Player
         {
             if (grabbedRef.TryGet(out NetworkObject grabbedObj))
                 GrabThrowServer?.Invoke(grabbedObj);
+        }
+
+        #endregion
+
+        #region ISpawnerNetwork
+
+        public Action SpawnServer { private get; set; }
+        public Action<NetworkObject> DespawnServer { private get; set; }
+
+        [Rpc(SendTo.Server)]
+        public void SpawnRpc()
+        {
+            SpawnServer?.Invoke();
+        }
+
+        [Rpc(SendTo.Server)]
+        public void DespawnRpc(NetworkObjectReference despawningRef)
+        {
+            if (despawningRef.TryGet(out NetworkObject despawningObj))
+                DespawnServer?.Invoke(despawningObj);
         }
 
         #endregion

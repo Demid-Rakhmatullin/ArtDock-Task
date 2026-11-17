@@ -1,4 +1,5 @@
 using Game.Interactions;
+using Game.Spawn;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
@@ -23,13 +24,14 @@ namespace Game.Player
             builder.RegisterComponent(_object.Controller)
                 .As<Collider>();
             builder.RegisterComponent(_object.Network)
-                .As<IGrabNetworkClient>();
+                .As<IGrabNetworkClient, ISpawnerNetworkClient>();
             builder.RegisterComponent(_object.MainTransform);
             builder.RegisterComponent(_object.GripPosition)
                 .Keyed(GRIP_POSITION);
 
             builder.RegisterEntryPoint<PlayerMoveService>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<GrabServiceClient>(Lifetime.Singleton);
+            GrabServiceClient.Install(builder, Lifetime.Singleton);
+            builder.RegisterEntryPoint<SpawnerServiceClient>(Lifetime.Singleton);
 
             builder.RegisterBuildCallback(AfterConfigure);
             builder.RegisterDisposeCallback(OnDispose);

@@ -1,7 +1,9 @@
 using Game.Interactions;
+using Game.Spawn;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using static Game.Spawn.SpawnKeys;
 
 namespace Game.Player
 {
@@ -15,9 +17,13 @@ namespace Game.Player
             builder.RegisterComponent(_object.Controller)
                 .As<Collider>();
             builder.RegisterComponent(_object.Network)
-                .As<IGrabNetworkServer>();
+                .As<IGrabNetworkServer, ISpawnerNetworkServer>();
+            builder.RegisterComponent(_object.SpawnPosition)
+                .Keyed(SPAWN_POINT);
+            builder.RegisterInstance(_object.SpawnerConfig);
 
             builder.RegisterEntryPoint<GrabServiceServer>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<SpawnerServiceServer>(Lifetime.Singleton);
         }
     }
 }

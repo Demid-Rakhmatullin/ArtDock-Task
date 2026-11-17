@@ -7,6 +7,12 @@ namespace Game.Interactions
 {
     class GrabServiceClient : GrabServiceBase, ITickable, IStartable
     {
+        public static void Install(IContainerBuilder builder, Lifetime lifetime)
+        {
+            builder.Register<GrabData>(lifetime);
+            builder.RegisterEntryPoint<GrabServiceClient>(lifetime);
+        }
+
         //todo: place this in GrabConfig
         //
         const float CLICK_DELAY = 1f;
@@ -14,22 +20,24 @@ namespace Game.Interactions
         const float TRANSLATE_SPEED = 12f;
         const float ROTATION_SPEED = 12f;
 
-        readonly IGrabDispatcher _dipatcher;
+        readonly GrabData _data;
+        readonly IGrabDispatcher _dispatcher;
         readonly IGrabNetworkClient _network;
         readonly Collider _grabber;
         readonly Transform _gripPosition;
 
         float _clickTimer;
-        Collider _grabbedObject;
         Vector3 _gripOffset;
 
         public GrabServiceClient(
-            IGrabDispatcher dipatcher,
+            GrabData data,
+            IGrabDispatcher dispatcher,
             IGrabNetworkClient network,
             Collider grabber,
             [Key(GRIP_POSITION)] Transform gripPosition)
         {
-            _dipatcher = dipatcher;
+            _data = data;
+            _dispatcher = dispatcher;
             _network = network;
             _grabber = grabber;
             _gripPosition = gripPosition;
@@ -43,13 +51,13 @@ namespace Game.Interactions
 
         void ITickable.Tick()
         {
-            if (_dipatcher.Grab)
+            if (_dispatcher.Grab)
             {
                 if (_clickTimer > 0f)
                     _clickTimer -= Time.deltaTime;
                 else
                 {
-                    if (!_grabbedObject)
+                    if (!_data.grabbed)
                     {
                         Vector3 grabberPos = _grabber.transform.position;
                         Bounds bounds = _grabber.bounds;
@@ -79,12 +87,12 @@ namespace Game.Interactions
             else if (_clickTimer > 0f)
                 _clickTimer = 0f;
 
-            if (_dipatcher.Throw && _grabbedObject)
+            if (_dispatcher.Throw && _data.grabbed)
             {
                 Release(true);
             }
 
-            if (_grabbedObject)
+            if (_data.grabbed)
             {
                 MoveGrabbed();
             }
@@ -92,42 +100,42 @@ namespace Game.Interactions
 
         private void Grab(GameObject grabbing)
         {
-            _grabbedObject = grabbing.GetComponent<Collider>();
+            _data.grabbed = grabbing.GetComponent<Collider>();
 
             //todo: Collide grabbed RB with other objects?
-            if (_grabbedObject.attachedRigidbody)
-                _grabbedObject.attachedRigidbody.isKinematic = true;
+            if (_data.grabbed.attachedRigidbody)
+                _data.grabbed.attachedRigidbody.isKinematic = true;
 
-            Physics.IgnoreCollision(_grabbedObject, _grabber);
+            Physics.IgnoreCollision(_data.grabbed, _grabber);
 
             _gripOffset = new(
                 0f,
-                _grabbedObject.bounds.extents.y,
-                _grabbedObject.bounds.extents.z);
+                _data.grabbed.bounds.extents.y,
+                _data.grabbed.bounds.extents.z);
         }
 
         private void Release(bool withThrow)
         {
-            Physics.IgnoreCollision(_grabbedObject, _grabber, false);
+            Physics.IgnoreCollision(_data.grabbed, _grabber, false);
 
             if (withThrow)
-                _network.GrabThrowRpc(_grabbedObject.gameObject);
+                _network.GrabThrowRpc(_data.grabbed.gameObject);
             else
-                _network.GrabReleaseRpc(_grabbedObject.gameObject);
+                _network.GrabReleaseRpc(_data.grabbed.gameObject);
 
-            _grabbedObject = null;
+            _data.grabbed = null;
         }
 
         private void MoveGrabbed()
         {
-            _grabbedObject.transform.position = Vector3.MoveTowards(
-                _grabbedObject.transform.position,
+            _data.grabbed.transform.position = Vector3.MoveTowards(
+                _data.grabbed.transform.position,
                 _grabber.transform.TransformPoint(_gripPosition.localPosition + _gripOffset),
                 TRANSLATE_SPEED * Time.deltaTime);
 
             //todo: preserve object's original rotation?
-            _grabbedObject.transform.forward = Vector3.RotateTowards(
-                _grabbedObject.transform.forward,
+            _data.grabbed.transform.forward = Vector3.RotateTowards(
+                _data.grabbed.transform.forward,
                 _grabber.transform.forward,
                 ROTATION_SPEED * Time.deltaTime,
                 0f);

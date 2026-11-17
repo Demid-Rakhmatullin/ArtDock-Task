@@ -166,3 +166,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Interactions.InteractableNetwork
   ShowTopMostFoldoutHeaderGroup: 1
+  rigidbody: {fileID: -8312662138835608832}

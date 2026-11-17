@@ -1,3 +1,4 @@
+using Game.Spawn;
 using UnityEngine;
 
 namespace Game.Player
@@ -5,6 +6,9 @@ namespace Game.Player
     [DisallowMultipleComponent]
     class PlayerObject : MonoBehaviour
     {
+        [field: SerializeField]
+        public SpawnerConfig SpawnerConfig { get; private set; }
+
         [field: SerializeField]
         public PlayerInputDispatcher Input { get; private set; }
 
@@ -19,5 +23,8 @@ namespace Game.Player
 
         [field: SerializeField]
         public Transform GripPosition { get; private set; }
+
+        [field: SerializeField]
+        public Transform SpawnPosition { get; private set; }
     }
 }
