@@ -1,16 +1,20 @@
+using Game.Gameplay;
 using Game.Interactions;
 using Game.Spawn;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Scripting;
+using VContainer;
+using PreserveAttribute = UnityEngine.Scripting.PreserveAttribute;
 
 namespace Game.Player
 {
     [DisallowMultipleComponent]
     class PlayerInputDispatcher : MonoBehaviour, IGrabDispatcher, ISpawnDispatcher
     {
-        [SerializeField] PlayerInput _playerInput;
+        [SerializeField] PlayerInput playerInput;
+
+        GameplayData _gpData; 
 
         public Vector2 Move { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; private set; }
         public Vector2 Look { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; private set; }
@@ -20,7 +24,7 @@ namespace Game.Player
         //very simple way to signal single button press
         //todo: clean up values gracefully (at the end of frame?)
         //
-        private bool _spawn;
+        bool _spawn;
         public bool Spawn 
         { 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -36,7 +40,7 @@ namespace Game.Player
             }
         }
 
-        private bool _despawn;
+        bool _despawn;
         public bool Despawn
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,10 +56,44 @@ namespace Game.Player
             }
         }
 
-        public void Enable()
+        [Inject]
+        public void Construct(GameplayData gpData)
+        {
+            _gpData = gpData;
+
+            gpData.OnStateChanged += OnGameplayStateChange;
+            OnGameplayStateChange(gpData.State);
+        }
+
+        private void OnDestroy()
+        {
+            if (_gpData != null)
+                _gpData.OnStateChanged -= OnGameplayStateChange;
+
+            Cursor.lockState = CursorLockMode.None;
+        }
+
+        private void OnGameplayStateChange(GameplayState state)
+        {
+            switch (state)
+            {
+                case GameplayState.Active:
+                    EnableInput(); break;
+                case GameplayState.Pause:
+                    DisableInput(); break;
+            }
+        }
+
+        private void EnableInput()
         {
             Cursor.lockState = CursorLockMode.Locked;
-            _playerInput.enabled = true;
+            playerInput.enabled = true;
+        }
+
+        private void DisableInput()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            playerInput.enabled = false;
         }
 
         [Preserve]

@@ -45,8 +45,6 @@ namespace Game.Player
                 cameraScope.Build();
             }
             _childScopes.Add(cameraScope);
-
-            _object.Input.Enable();
         }
 
         private void OnDispose(IObjectResolver resolver)

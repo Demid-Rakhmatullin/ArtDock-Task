@@ -1,3 +1,4 @@
+using Game.Gameplay;
 using Game.Interactions;
 using Game.Spawn;
 using System;
@@ -18,7 +19,13 @@ namespace Game.Player
         protected override void OnNetworkPostSpawn()
         {
             if (IsOwner)
-                _clientScope.Build();
+            {
+                var gameplayScope = FindAnyObjectByType<GameplayScope>(); //todo: use LifetimeScope class instead of concrete implementation
+                using (LifetimeScope.EnqueueParent(gameplayScope))
+                {
+                    _clientScope.Build();
+                }
+            }
 
             if (IsServer)
                 _serverScope.Build();

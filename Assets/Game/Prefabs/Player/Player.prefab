@@ -147,13 +147,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1f87b27b0898348bef18be85a4c24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerObject
+  <SpawnerConfig>k__BackingField: {fileID: 11400000, guid: e40c02c608fee684b985c4b99a3a3847, type: 2}
   <Input>k__BackingField: {fileID: 4357740311855697659}
   <Controller>k__BackingField: {fileID: 3804276739304620103}
   <Network>k__BackingField: {fileID: -3869569563115169617}
   <MainTransform>k__BackingField: {fileID: 8382422471401602795}
   <GripPosition>k__BackingField: {fileID: 6561318067545952653}
   <SpawnPosition>k__BackingField: {fileID: 1212566271578659647}
-  <SpawnerConfig>k__BackingField: {fileID: 11400000, guid: e40c02c608fee684b985c4b99a3a3847, type: 2}
 --- !u!114 &3174165577067581950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df322e395c2ab0946b8f5a420808cbaf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerInputDispatcher
-  _playerInput: {fileID: 4542916802743227024}
+  playerInput: {fileID: 4542916802743227024}
 --- !u!143 &3804276739304620103
 CharacterController:
   m_ObjectHideFlags: 0
@@ -268,7 +268,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3266642637
+  GlobalObjectIdHash: 3222015740
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0

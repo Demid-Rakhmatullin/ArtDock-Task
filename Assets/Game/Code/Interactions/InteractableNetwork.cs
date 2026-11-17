@@ -6,7 +6,7 @@ namespace Game.Interactions
     [DisallowMultipleComponent]
     class InteractableNetwork : NetworkBehaviour
     {
-        [SerializeField] new Rigidbody rigidbody;
+        [SerializeField] Rigidbody rb;
 
         bool _isHidden;
 
@@ -41,7 +41,7 @@ namespace Game.Interactions
 
         private void Hide()
         {
-            rigidbody.isKinematic = true;
+            rb.isKinematic = true;
 
             if (TryGetComponent<Collider>(out var collider))
                 collider.enabled = false;
