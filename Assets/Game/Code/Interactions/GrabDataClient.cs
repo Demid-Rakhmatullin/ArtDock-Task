@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Game.Interactions
 {
-    public class GrabData
+    public class GrabDataClient
     {
         public Collider grabbed;
     }

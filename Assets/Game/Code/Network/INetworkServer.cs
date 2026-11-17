@@ -1,4 +1,4 @@
-namespace Game.Common
+namespace Game.Network
 {
     public interface INetworkServer
     {

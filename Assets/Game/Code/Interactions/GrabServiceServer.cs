@@ -1,22 +1,33 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace Game.Interactions
 {
-    class GrabServiceServer : GrabServiceBase, IStartable
+    class GrabServiceServer : GrabServiceBase, IStartable, IDisposable
     {
+        public static void Install(IContainerBuilder builder, Lifetime lifetime)
+        {
+            builder.Register<GrabDataServer>(lifetime);
+            builder.RegisterEntryPoint<GrabServiceServer>(lifetime);
+        }
+
         //todo: place this in GrabConfig
         //
         const float THROW_FORCE = 10f;
 
+        readonly GrabDataServer _data;
         readonly IGrabNetworkServer _network;
         readonly Collider _grabber;
 
-        public GrabServiceServer(IGrabNetworkServer network, Collider grabber)
+        public GrabServiceServer(IGrabNetworkServer network, Collider grabber, 
+            GrabDataServer data)
         {
             _network = network;
             _grabber = grabber;
+            _data = data;
         }
 
         void IStartable.Start()
@@ -33,8 +44,7 @@ namespace Game.Interactions
                 !grabbingObj.TryGetComponent<Collider>(out var grabbingCollider))
                 return;
 
-            if (interactable.isGrabbed &&
-                _network.OwnerClientId != grabbingObj.OwnerClientId) //if client RPC somehow is lost repeat server logic
+            if (interactable.isGrabbed || _data.grabbed != null)
                 return;
 
             float castRadius = GetCastRadius(_grabber.bounds);
@@ -51,40 +61,45 @@ namespace Game.Interactions
 
             grabbingObj.ChangeOwnership(_network.OwnerClientId);
             interactable.isGrabbed = true;
+            _data.grabbed = grabbingObj;
             _network.GrabRequestAuthorizedRpc(grabbingObj);
         }
 
-        private void Release(NetworkObject grabbedObj)
-            => Release(grabbedObj, out _);
+        private void Release()
+            => Release(out _, out _);
 
-        private bool Release(NetworkObject grabbedObj, out Rigidbody rb)
+        private bool Release(out NetworkObject released, out Rigidbody rb)
         {
+            released = _data.grabbed;
             rb = null;
 
-            if (_network.OwnerClientId != grabbedObj.OwnerClientId)
+            if (!_data.grabbed)
                 return false;
 
-            if (!grabbedObj.TryGetComponent<InteractableServerData>(out var interactable))
-                return false;
-
-            grabbedObj.RemoveOwnership();
-            interactable.isGrabbed = false;
-
-            if (grabbedObj.TryGetComponent(out rb))
+            if (_data.grabbed.TryGetComponent(out rb))
                 rb.isKinematic = false;
+
+            if (_data.grabbed.IsSpawned)
+                _data.grabbed.RemoveOwnership();
+
+            _data.grabbed.GetComponent<InteractableServerData>().isGrabbed = false;
+            _data.grabbed = null;
 
             return true;
         }
 
-        private void Throw(NetworkObject grabbedObj)
+        private void Throw()
         {
-            if (Release(grabbedObj, out var rb))
+            if (Release(out var released, out var rb))
             {
                 rb.AddForce(
-                    grabbedObj.transform.forward * THROW_FORCE,
+                    released.transform.forward * THROW_FORCE,
                     ForceMode.Impulse
                 );
             }
         }
+
+        void IDisposable.Dispose()
+            => Release();
     }
 }

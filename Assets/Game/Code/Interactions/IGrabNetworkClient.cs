@@ -10,8 +10,8 @@ namespace Game.Interactions
 
         void GrabRequestRpc(NetworkObjectReference grabbingObj);
 
-        void GrabReleaseRpc(NetworkObjectReference grabbingRef);
+        void GrabReleaseRpc();
 
-        void GrabThrowRpc(NetworkObjectReference grabbedRef);
+        void GrabThrowRpc();
     }
 }

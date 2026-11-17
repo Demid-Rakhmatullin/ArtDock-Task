@@ -9,7 +9,7 @@ namespace Game.Interactions
     {
         public static void Install(IContainerBuilder builder, Lifetime lifetime)
         {
-            builder.Register<GrabData>(lifetime);
+            builder.Register<GrabDataClient>(lifetime);
             builder.RegisterEntryPoint<GrabServiceClient>(lifetime);
         }
 
@@ -20,7 +20,7 @@ namespace Game.Interactions
         const float TRANSLATE_SPEED = 12f;
         const float ROTATION_SPEED = 12f;
 
-        readonly GrabData _data;
+        readonly GrabDataClient _data;
         readonly IGrabDispatcher _dispatcher;
         readonly IGrabNetworkClient _network;
         readonly Collider _grabber;
@@ -30,7 +30,7 @@ namespace Game.Interactions
         Vector3 _gripOffset;
 
         public GrabServiceClient(
-            GrabData data,
+            GrabDataClient data,
             IGrabDispatcher dispatcher,
             IGrabNetworkClient network,
             Collider grabber,
@@ -119,9 +119,9 @@ namespace Game.Interactions
             Physics.IgnoreCollision(_data.grabbed, _grabber, false);
 
             if (withThrow)
-                _network.GrabThrowRpc(_data.grabbed.gameObject);
+                _network.GrabThrowRpc();
             else
-                _network.GrabReleaseRpc(_data.grabbed.gameObject);
+                _network.GrabReleaseRpc();
 
             _data.grabbed = null;
         }

@@ -8,9 +8,9 @@ namespace Game.Spawn
     {
         readonly ISpawnDispatcher _dispatcher;
         readonly ISpawnerNetworkClient _network;
-        readonly GrabData _grabData;
+        readonly GrabDataClient _grabData;
 
-        public SpawnerServiceClient(ISpawnDispatcher dipatcher, ISpawnerNetworkClient network, 
+        public SpawnerServiceClient(ISpawnDispatcher dipatcher, ISpawnerNetworkClient network,
             IObjectResolver resolver)
         {
             _dispatcher = dipatcher;
@@ -27,7 +27,7 @@ namespace Game.Spawn
                 _grabData != null &&
                 _grabData.grabbed != null)
             {
-                _network.DespawnRpc(_grabData.grabbed.gameObject);
+                _network.DespawnRpc();
                 _grabData.grabbed = null;
             }
         }

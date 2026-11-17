@@ -1,4 +1,4 @@
-using Game.Common;
+using Game.Network;
 using System;
 using Unity.Netcode;
 
@@ -8,6 +8,6 @@ namespace Game.Spawn
     {
         Action SpawnServer { set; }
 
-        Action<NetworkObject> DespawnServer { set; }
+        Action DespawnServer { set; }
     }
 }

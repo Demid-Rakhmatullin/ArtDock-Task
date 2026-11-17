@@ -1,16 +1,16 @@
-using Game.Common;
+using Game.Network;
 using System;
 using Unity.Netcode;
 
 namespace Game.Interactions
 {
     public interface IGrabNetworkServer : INetworkServer
-    {        
-        Action <NetworkObject> GrabServer { set; }
+    {
+        Action<NetworkObject> GrabServer { set; }
 
-        Action<NetworkObject> GrabReleaseServer { set; }
+        Action GrabReleaseServer { set; }
 
-        Action<NetworkObject> GrabThrowServer { set; }
+        Action GrabThrowServer { set; }
 
         void GrabRequestAuthorizedRpc(NetworkObjectReference grabbingRef);
     }

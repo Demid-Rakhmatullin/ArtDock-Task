@@ -1,5 +1,4 @@
 using Game.Interactions;
-using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -13,15 +12,18 @@ namespace Game.Spawn
         readonly SpawnerConfig _config;
         readonly ISpawnerNetworkServer _network;
         readonly Transform _spawnPoint;
+        readonly GrabDataServer _grabData;
 
         public SpawnerServiceServer(
             SpawnerConfig config, 
             ISpawnerNetworkServer network,
-            [Key(SPAWN_POINT)] Transform spawnPoint)
+            [Key(SPAWN_POINT)] Transform spawnPoint,
+            IObjectResolver resolver)
         {
             _config = config;
             _network = network;
             _spawnPoint = spawnPoint;
+            resolver.TryResolve(out _grabData); //designed as optional dependency for this service
         }
 
         void IStartable.Start()
@@ -47,17 +49,15 @@ namespace Game.Spawn
             instance.Spawn();
         }
 
-        private void Despawn(NetworkObject despawningObj)
+        private void Despawn()
         {
-            if (despawningObj.OwnerClientId != _network.OwnerClientId)
+            if (_grabData == null || _grabData.grabbed == null)
                 return;
 
-            if (!despawningObj.TryGetComponent<InteractableServerData>(out var interactable) ||
-                !interactable.isGrabbed)
-                return;
-
-            despawningObj.RemoveOwnership();
-            despawningObj.Despawn(!despawningObj.InScenePlaced);
+            var grabbed = _grabData.grabbed;
+            grabbed.RemoveOwnership();
+            grabbed.Despawn(!grabbed.InScenePlaced);
+            _grabData.grabbed = null;
         }
     }
 }

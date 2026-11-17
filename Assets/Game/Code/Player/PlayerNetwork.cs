@@ -32,16 +32,16 @@ namespace Game.Player
             if (IsServer)
                 _serverScope.DisposeCore();
         }
-
+        
         #region IGrabNetwork
 
         public Action<GameObject> GrabRequestAuthorized { private get; set; }
 
         public Action<NetworkObject> GrabServer { private get; set; }
 
-        public Action<NetworkObject> GrabReleaseServer { private get; set; }
+        public Action GrabReleaseServer { private get; set; }
 
-        public Action<NetworkObject> GrabThrowServer { private get; set; }
+        public Action GrabThrowServer { private get; set; }
 
         [Rpc(SendTo.Server)]
         public void GrabRequestRpc(NetworkObjectReference grabbingRef)
@@ -58,17 +58,15 @@ namespace Game.Player
         }
 
         [Rpc(SendTo.Server)]
-        public void GrabReleaseRpc(NetworkObjectReference grabbedRef)
+        public void GrabReleaseRpc()
         {
-            if (grabbedRef.TryGet(out NetworkObject grabbedObj))
-                GrabReleaseServer?.Invoke(grabbedObj);
+            GrabReleaseServer?.Invoke();
         }
 
         [Rpc(SendTo.Server)]
-        public void GrabThrowRpc(NetworkObjectReference grabbedRef)
+        public void GrabThrowRpc()
         {
-            if (grabbedRef.TryGet(out NetworkObject grabbedObj))
-                GrabThrowServer?.Invoke(grabbedObj);
+            GrabThrowServer?.Invoke();
         }
 
         #endregion
@@ -76,7 +74,7 @@ namespace Game.Player
         #region ISpawnerNetwork
 
         public Action SpawnServer { private get; set; }
-        public Action<NetworkObject> DespawnServer { private get; set; }
+        public Action DespawnServer { private get; set; }
 
         [Rpc(SendTo.Server)]
         public void SpawnRpc()
@@ -85,10 +83,9 @@ namespace Game.Player
         }
 
         [Rpc(SendTo.Server)]
-        public void DespawnRpc(NetworkObjectReference despawningRef)
+        public void DespawnRpc()
         {
-            if (despawningRef.TryGet(out NetworkObject despawningObj))
-                DespawnServer?.Invoke(despawningObj);
+            DespawnServer?.Invoke();
         }
 
         #endregion

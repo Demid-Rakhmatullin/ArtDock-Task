@@ -22,7 +22,7 @@ namespace Game.Player
                 .Keyed(SPAWN_POINT);
             builder.RegisterInstance(_object.SpawnerConfig);
 
-            builder.RegisterEntryPoint<GrabServiceServer>(Lifetime.Singleton);
+            GrabServiceServer.Install(builder, Lifetime.Singleton);
             builder.RegisterEntryPoint<SpawnerServiceServer>(Lifetime.Singleton);
         }
     }
