@@ -18,9 +18,16 @@ namespace Game.Network
                 GameplaySceneName = gameplayScene.name;
         }
 #endif
+        [field: SerializeField]
         public string GameplaySceneName { get; private set; }
 
         [field: SerializeField]
+        public int MaxPlayersCount { get; private set; }
+
+        [field: SerializeField]
         public bool UseSteam { get; private set; }
+
+        [field: SerializeField]
+        public float SteamInvitePingSeconds { get; private set; }
     }
 }

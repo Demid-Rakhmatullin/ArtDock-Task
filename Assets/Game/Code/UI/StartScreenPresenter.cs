@@ -22,9 +22,9 @@ namespace Game.UI
             _view.ExitBtn.onClick.AddListener(OnExit);
         }
 
-        private void OnCreate()
+        private async void OnCreate()
         {
-            _connection.StartHost();
+            await _connection.StartHost();
         }
 
         private void OnJoin()

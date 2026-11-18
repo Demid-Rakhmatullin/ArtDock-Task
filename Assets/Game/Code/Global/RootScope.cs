@@ -16,12 +16,7 @@ namespace Game.Global
             builder.RegisterInstance(InputSystem.actions); //project-wide input asset
 
             var networkManager = FindAnyObjectByType<GameNetworkManager>();
-            networkManager.SetConfig(networkConfig);  //keep GameNetworkManager outside DI container (architecture decision)
-
-            builder.RegisterInstance(networkConfig);
-            builder.Register<ConnectionServiceBasic>(Lifetime.Singleton)
-                .AsImplementedInterfaces()
-                .WithParameter(typeof(GameNetworkManager), networkManager);
+            networkManager.Install(builder, networkConfig);
         }
     }
 }

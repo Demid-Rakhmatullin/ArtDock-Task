@@ -1,10 +1,17 @@
+using System;
+using System.Threading.Tasks;
+
 namespace Game.Network
 {
     public interface IConnectionService
     {
-        void StartHost();
+        event Action OnDisconnecting;
 
-        void StartClient();
+        event Action<bool> OnDisconnected;
+
+        Task<bool> StartHost();
+
+        bool StartClient();
 
         void Shutdown();
     }

@@ -1,5 +1,6 @@
+using System;
+using System.Threading.Tasks;
 using Unity.Netcode;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Game.Network
@@ -9,7 +10,8 @@ namespace Game.Network
         readonly GameNetworkManager _manager;
         readonly GameNetworkConfig _config;
 
-        bool _isSubscribed;
+        public event Action OnDisconnecting;
+        public event Action<bool> OnDisconnected;
 
         public ConnectionServiceBasic(GameNetworkManager manager, GameNetworkConfig config)
         {
@@ -17,47 +19,66 @@ namespace Game.Network
             _config = config;
         }
 
-        public void StartHost()
+        public Task<bool> StartHost()
         {
             if (_manager.StartHost())
             {
                 SubscribeHost();
                 _manager.SceneManager.LoadScene(_config.GameplaySceneName, LoadSceneMode.Single);
+
+                return Task.FromResult(true);
             }
+
+            return Task.FromResult(false);
         }
 
-        public void StartClient()
+        public bool StartClient()
         {
             if (_manager.StartClient())
             {
                 SubscribeClient();
+                return true;
             }
+
+            return false;
         }
 
         public void Shutdown()
-        {
-            _manager.Shutdown();
-        }
+            => _manager.Shutdown();
 
         private void SubscribeHost()
         {
+            //one-time subscriptions
             _manager.SceneManager.OnSceneEvent += OnSceneEventHost;
 
-            if (!_isSubscribed)
-            {
-                _manager.OnClientConnectedCallback += OnClientConnectedHost;
-                _manager.OnClientStopped += OnClientStopped;
-                _isSubscribed = true;
-            }
+            _manager.OnClientConnectedCallback += OnClientConnectedHost;
+            _manager.OnPreShutdown += OnPreShutdown;
+            _manager.OnClientStopped += OnClientStopped;
         }
 
         private void SubscribeClient()
         {
-            if (!_isSubscribed)
-            {
-                _manager.OnClientStopped += OnClientStopped;
-                _isSubscribed = true;
-            }
+            _manager.OnPreShutdown += OnPreShutdown;
+            _manager.OnClientStopped += OnClientStopped;
+        }
+
+        private void UnsubscribeHost()
+        {
+            if (!_manager)
+                return;
+
+            _manager.OnClientConnectedCallback -= OnClientConnectedHost;
+            _manager.OnPreShutdown -= OnPreShutdown;
+            _manager.OnClientStopped -= OnClientStopped;     
+        }
+
+        private void UnsubscribeClient()
+        {
+            if (!_manager)
+                return;
+
+            _manager.OnPreShutdown -= OnPreShutdown;
+            _manager.OnClientStopped -= OnClientStopped;
         }
 
         private void OnSceneEventHost(SceneEvent sceneEvent)
@@ -72,18 +93,33 @@ namespace Game.Network
 
         private void OnClientConnectedHost(ulong clientId)
         {
-            if (clientId != NetworkManager.ServerClientId)
-                SpawnPlayer(clientId);
+            if (_manager.ConnectedClientsIds.Count > _config.MaxPlayersCount)
+            {
+                _manager.DisconnectClient(clientId, "Too many players"); //todo: display message on client
+                return;
+            }
+
+            SpawnPlayer(clientId);
         }
 
         private void SpawnPlayer(ulong clientId)
         {
-            var playerGO = Object.Instantiate(_config.PlayerPrefab);
+            var playerGO = UnityEngine.Object.Instantiate(_config.PlayerPrefab);
             playerGO.SpawnAsPlayerObject(clientId);
         }
 
+        private void OnPreShutdown()
+            => OnDisconnecting?.Invoke();
+
         private void OnClientStopped(bool isHost)
         {
+            OnDisconnected?.Invoke(isHost);
+
+            if (isHost)
+                UnsubscribeHost();
+            else
+                UnsubscribeClient();
+
             SceneManager.LoadScene(0);
         }
     }
