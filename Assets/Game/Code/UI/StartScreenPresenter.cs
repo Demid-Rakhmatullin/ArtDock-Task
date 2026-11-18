@@ -6,12 +6,12 @@ namespace Game.UI
     class StartScreenPresenter : IStartable
     {
         readonly StartScreenView _view;
-        readonly GameNetworkManager _networkManager;
+        readonly IConnectionService _connection;
 
-        public StartScreenPresenter(StartScreenView view, GameNetworkManager networkManager)
+        public StartScreenPresenter(StartScreenView view, IConnectionService connection)
         {
             _view = view;
-            _networkManager = networkManager;
+            _connection = connection;
         }
 
         void IStartable.Start()
@@ -24,12 +24,12 @@ namespace Game.UI
 
         private void OnCreate()
         {
-            _networkManager.StartHost();
+            _connection.StartHost();
         }
 
         private void OnJoin()
         {
-            _networkManager.StartClient();
+            _connection.StartClient();
         }
 
         private void OnExit()

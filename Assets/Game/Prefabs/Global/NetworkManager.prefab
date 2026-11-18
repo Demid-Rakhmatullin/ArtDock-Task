@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &6532298661238910761
+--- !u!1 &2325232490275895061
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,10 +8,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1483041938033749741}
-  - component: {fileID: 2223869280425525062}
-  - component: {fileID: 4943318281063865073}
-  - component: {fileID: 8840904180188117577}
+  - component: {fileID: 4610357528387480897}
+  - component: {fileID: -2483980208673060967}
+  - component: {fileID: 7006193442706983990}
+  - component: {fileID: 1995484524450116031}
+  - component: {fileID: 3882756784815125778}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -19,13 +20,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1483041938033749741
+--- !u!4 &4610357528387480897
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6532298661238910761}
+  m_GameObject: {fileID: 2325232490275895061}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -34,22 +35,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2223869280425525062
+--- !u!114 &-2483980208673060967
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6532298661238910761}
+  m_GameObject: {fileID: 2325232490275895061}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 593a2fe42fa9d37498c96f9a383b6521, type: 3}
+  m_Script: {fileID: 11500000, guid: 56106f17b00f2ab408e9a52800519fa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkManager
-  NetworkManagerExpanded: 0
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkManagerData
+  <Config>k__BackingField: {fileID: 11400000, guid: 2730ff09091d5ef4ba959a934115d1c0, type: 2}
+  <UnityTransport>k__BackingField: {fileID: 1995484524450116031}
+  <SteamTransport>k__BackingField: {fileID: 3882756784815125778}
+--- !u!114 &7006193442706983990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2325232490275895061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bb8891830da5c3489be308fde85928d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkManager
+  NetworkManagerExpanded: 1
   NetworkConfig:
     ProtocolVersion: 0
-    NetworkTransport: {fileID: 4943318281063865073}
+    NetworkTransport: {fileID: 0}
     PlayerPrefab: {fileID: 0}
     Prefabs:
       NetworkPrefabsLists:
@@ -76,13 +92,13 @@ MonoBehaviour:
     OldPrefabList: []
   RunInBackground: 1
   LogLevel: 1
---- !u!114 &4943318281063865073
+--- !u!114 &1995484524450116031
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6532298661238910761}
+  m_GameObject: {fileID: 2325232490275895061}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6960e84d07fb87f47956e7a81d71c4e6, type: 3}
@@ -107,19 +123,18 @@ MonoBehaviour:
     PacketDelayMS: 0
     PacketJitterMS: 0
     PacketDropRate: 0
---- !u!114 &8840904180188117577
+--- !u!114 &3882756784815125778
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6532298661238910761}
+  m_GameObject: {fileID: 2325232490275895061}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93c82e05549563d4aa328f4546ca3870, type: 3}
+  m_Script: {fileID: 11500000, guid: 44dd247a00edbfa44b77868d755af6ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkManager
-  networkManager: {fileID: 2223869280425525062}
-  playerPrefab: {fileID: -8651774280117347735, guid: 14d3ab3f8ba641d46aca659635ac9aa1, type: 3}
-  gameplayScene: {fileID: 102900000, guid: 99c9720ab356a0642a771bea13969a05, type: 3}
-  gameplaySceneName: Playground
+  m_EditorClassIdentifier: Facepunch Transport for Netcode for GameObjects::Netcode.Transports.Facepunch.FacepunchTransport
+  steamAppId: 480
+  targetSteamId: 0
+  userSteamId: 0

@@ -1,6 +1,6 @@
 namespace Game.Network
 {
-    public interface INetworkServer
+    public interface IServerBehaviour
     {
         ulong OwnerClientId { get; }
     }

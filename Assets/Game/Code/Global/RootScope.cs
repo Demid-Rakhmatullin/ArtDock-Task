@@ -1,5 +1,4 @@
 using Game.Network;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -10,11 +9,19 @@ namespace Game.Global
     [DisallowMultipleComponent]
     class RootScope : LifetimeScope
     {
+        [SerializeField] GameNetworkConfig networkConfig;
+
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterComponent(FindAnyObjectByType<NetworkManager>());
-            builder.RegisterComponent(FindAnyObjectByType<GameNetworkManager>());
             builder.RegisterInstance(InputSystem.actions); //project-wide input asset
+
+            var networkManager = FindAnyObjectByType<GameNetworkManager>();
+            networkManager.SetConfig(networkConfig);  //keep GameNetworkManager outside DI container (architecture decision)
+
+            builder.RegisterInstance(networkConfig);
+            builder.Register<ConnectionServiceBasic>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(typeof(GameNetworkManager), networkManager);
         }
     }
 }

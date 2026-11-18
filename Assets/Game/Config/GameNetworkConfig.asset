@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eae26bed9a0edd942b3f991fa9c6cab4, type: 3}
+  m_Name: GameNetworkConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkConfig
+  <PlayerPrefab>k__BackingField: {fileID: -8651774280117347735, guid: 14d3ab3f8ba641d46aca659635ac9aa1, type: 3}
+  gameplayScene: {fileID: 102900000, guid: 99c9720ab356a0642a771bea13969a05, type: 3}
+  <GameplaySceneName>k__BackingField: Playground
+  <UseSteam>k__BackingField: 0

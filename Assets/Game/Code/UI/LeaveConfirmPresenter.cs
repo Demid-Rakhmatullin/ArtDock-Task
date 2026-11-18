@@ -1,6 +1,6 @@
 using Game.Gameplay;
+using Game.Network;
 using System;
-using Unity.Netcode;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 using static Game.Global.InputGlobalActions;
@@ -11,15 +11,15 @@ namespace Game.UI
     class LeaveConfirmPresenter : IStartable, IDisposable
     {
         readonly LeaveConfirmView _view;
-        readonly NetworkManager _networkManager;
+        readonly IConnectionService _connection;
         readonly InputActionAsset _input;
         readonly GameplayData _gpData;
 
-        public LeaveConfirmPresenter(LeaveConfirmView view, NetworkManager networkManager,
+        public LeaveConfirmPresenter(LeaveConfirmView view, IConnectionService connection,
             InputActionAsset input, GameplayData gpData)
         {
             _view = view;
-            _networkManager = networkManager;
+            _connection = connection;
             _input = input;
             _gpData = gpData;
         }
@@ -46,7 +46,7 @@ namespace Game.UI
 
         private void Leave()
         {
-            _networkManager.Shutdown();
+            _connection.Shutdown();
         }
 
         private void Hide()

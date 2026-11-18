@@ -4,7 +4,7 @@ using Unity.Netcode;
 
 namespace Game.Interactions
 {
-    public interface IGrabNetworkServer : INetworkServer
+    public interface IGrabNetworkServer : IServerBehaviour
     {
         Action<NetworkObject> GrabServer { set; }
 
