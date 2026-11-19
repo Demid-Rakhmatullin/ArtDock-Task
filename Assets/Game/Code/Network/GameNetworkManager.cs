@@ -48,9 +48,16 @@ namespace Game.Network
             {
                 NetworkConfig.NetworkTransport = _data.UnityTransport;
 
-                builder.RegisterEntryPoint<ConnectionServiceBasic>(Lifetime.Singleton) 
-                    .WithParameter(typeof(GameNetworkManager), this);
+                builder.Register<ConnectionServiceBasic>(Lifetime.Singleton) 
+                    .WithParameter(typeof(GameNetworkManager), this)
+                    .AsImplementedInterfaces();
             }
+
+            builder.Register<ClientDataProviderSimple>(Lifetime.Singleton)
+                .AsImplementedInterfaces();
+            builder.Register<NetworkClientsService>(Lifetime.Singleton)
+                .WithParameter(typeof(GameNetworkManager), this)
+                .AsImplementedInterfaces();
         }
 
         protected override void Awake()

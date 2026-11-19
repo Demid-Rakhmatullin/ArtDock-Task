@@ -12,8 +12,11 @@ namespace Game.Network
         readonly GameNetworkConfig _config;
         readonly SystemMessagesService _messagesService;
 
+        public event Action<ulong> OnConnected;
         public event Action OnDisconnecting;
         public event Action<bool> OnDisconnected;
+        public event Action<ulong> OnOtherClientConnected;
+        public event Action<ulong> OnOtherClientDisconnected;
 
         public ConnectionServiceBasic(GameNetworkManager manager, GameNetworkConfig config,
             SystemMessagesService messagesService)
@@ -29,6 +32,7 @@ namespace Game.Network
 
             if (_manager.StartHost())
             {
+                SubscribeAll();
                 SubscribeHost();
                 _manager.SceneManager.LoadScene(_config.GameplaySceneName, LoadSceneMode.Single);
 
@@ -43,6 +47,7 @@ namespace Game.Network
         {
             if (_manager.StartClient())
             {
+                SubscribeAll();
                 SubscribeClient();
                 return true;
             }
@@ -52,6 +57,20 @@ namespace Game.Network
 
         public void Shutdown()
             => _manager.Shutdown();
+
+        private void SubscribeAll()
+        {
+            _manager.OnConnectionEvent += OnConnectionAll;
+            _manager.OnPreShutdown += OnPreShutdownAll;
+            _manager.OnClientStopped += OnClientStoppedAll;
+        }
+
+        private void UnsubscribeAll()
+        {
+            _manager.OnConnectionEvent -= OnConnectionAll;
+            _manager.OnPreShutdown -= OnPreShutdownAll;
+            _manager.OnClientStopped -= OnClientStoppedAll;
+        }
 
         private void SubscribeEarlyHost()
         {
@@ -68,9 +87,7 @@ namespace Game.Network
             //one-time subscriptions
             _manager.SceneManager.OnSceneEvent += OnSceneEventHost;
 
-            _manager.OnClientConnectedCallback += OnClientConnectedHost;
-            _manager.OnPreShutdown += OnPreShutdown;
-            _manager.OnClientStopped += OnClientStopped;
+            _manager.OnConnectionEvent += OnConnectionHost;
         }
 
         private void UnsubscribeHost()
@@ -79,16 +96,12 @@ namespace Game.Network
                 return;
 
             UnsubscribeEarlyHost();
-            _manager.OnClientConnectedCallback -= OnClientConnectedHost;
-            _manager.OnPreShutdown -= OnPreShutdown;
-            _manager.OnClientStopped -= OnClientStopped;
+            _manager.OnConnectionEvent -= OnConnectionHost;
         }
 
         private void SubscribeClient()
         {
-            _manager.OnClientDisconnectCallback += OnDisconnectClient;
-            _manager.OnPreShutdown += OnPreShutdown;
-            _manager.OnClientStopped += OnClientStopped;
+            _manager.OnConnectionEvent += OnConnectionClient;
         }
 
         private void UnsubscribeClient()
@@ -96,9 +109,7 @@ namespace Game.Network
             if (!_manager)
                 return;
 
-            _manager.OnClientDisconnectCallback -= OnDisconnectClient;
-            _manager.OnPreShutdown -= OnPreShutdown;
-            _manager.OnClientStopped -= OnClientStopped;
+            _manager.OnConnectionEvent -= OnConnectionClient;
         }
 
         private void OnSceneEventHost(SceneEvent sceneEvent)
@@ -107,6 +118,7 @@ namespace Game.Network
             {
                 case SceneEventType.LoadEventCompleted:
                     SpawnPlayer(sceneEvent.ClientId);
+                    OnConnected?.Invoke(sceneEvent.ClientId);
                     break;
             }
         }
@@ -124,27 +136,47 @@ namespace Game.Network
             response.Approved = true;
         }
 
-        private void OnClientConnectedHost(ulong clientId)
+        private void OnConnectionAll(NetworkManager manager, ConnectionEventData data)
         {
-            SpawnPlayer(clientId);
+            switch (data.EventType)
+            {
+                case ConnectionEvent.PeerConnected:
+                    OnOtherClientConnected?.Invoke(data.ClientId);
+                    break;
+                case ConnectionEvent.PeerDisconnected:
+                    OnOtherClientDisconnected?.Invoke(data.ClientId);
+                    break;
+            }
         }
 
-        private void SpawnPlayer(ulong clientId)
+        private void OnConnectionHost(NetworkManager manager, ConnectionEventData data)
         {
-            var playerGO = UnityEngine.Object.Instantiate(_config.PlayerPrefab);
-            playerGO.SpawnAsPlayerObject(clientId);
+            switch (data.EventType)
+            {
+                case ConnectionEvent.ClientConnected:
+                    SpawnPlayer(data.ClientId);
+                    break;
+            }
         }
 
-        private void OnDisconnectClient(ulong obj)
+        private void OnConnectionClient(NetworkManager manager, ConnectionEventData data)
         {
-            if (!string.IsNullOrEmpty(_manager.DisconnectReason))
-                _messagesService.DisplayMessage(_manager.DisconnectReason);
+            switch (data.EventType)
+            {
+                case ConnectionEvent.ClientConnected:
+                    OnConnected?.Invoke(data.ClientId); //on host this event is called later, because at this point first scene isn't initialized yet when starting host
+                    break;
+                case ConnectionEvent.ClientDisconnected:
+                    if (!string.IsNullOrEmpty(_manager.DisconnectReason))
+                        _messagesService.DisplayMessage(_manager.DisconnectReason);
+                    break;
+            }
         }
 
-        private void OnPreShutdown()
+        private void OnPreShutdownAll()
             => OnDisconnecting?.Invoke();
 
-        private void OnClientStopped(bool isHost)
+        private void OnClientStoppedAll(bool isHost)
         {
             OnDisconnected?.Invoke(isHost);
 
@@ -152,9 +184,16 @@ namespace Game.Network
                 UnsubscribeHost();
             else
                 UnsubscribeClient();
+            UnsubscribeAll();
 
             if (SceneManager.GetActiveScene().buildIndex != 0)
                 SceneManager.LoadScene(0);
+        }
+
+        private void SpawnPlayer(ulong clientId)
+        {
+            var playerGO = UnityEngine.Object.Instantiate(_config.PlayerPrefab);
+            playerGO.SpawnAsPlayerObject(clientId);
         }
     }
 }

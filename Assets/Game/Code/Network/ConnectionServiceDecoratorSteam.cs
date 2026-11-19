@@ -22,8 +22,11 @@ namespace Game.Network
         bool _waitingInvite;
         float _invitePingTimer;
 
+        public event Action<ulong> OnConnected;
         public event Action OnDisconnecting;
         public event Action<bool> OnDisconnected;
+        public event Action<ulong> OnOtherClientConnected;
+        public event Action<ulong> OnOtherClientDisconnected;
 
         public ConnectionServiceDecoratorSteam(IConnectionService inner, GameNetworkConfig config,
             SystemMessagesService messagesService, NetworkTransport transport)
@@ -36,6 +39,13 @@ namespace Game.Network
 
         async Awaitable IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
+            //consider decorator has the same lifetime as decorated instance
+            _inner.OnDisconnecting += OnDisconnectingHandler;
+            _inner.OnDisconnected += OnDisconnectedHandler;
+            _inner.OnConnected += OnConnectedHandler;
+            _inner.OnOtherClientConnected += OnOtherClientConnectedHandler;
+            _inner.OnOtherClientDisconnected += OnOtherClientDisconnectedHandler;
+
             await StartWaitingInvite();
         }
 
@@ -90,6 +100,7 @@ namespace Game.Network
             }
 
             StopWaitingInvite();
+            SubscribeAll();
             SubscribeHost();
             _currentLobby = await SteamMatchmaking.CreateLobbyAsync(_config.MaxPlayersCount);
 
@@ -106,39 +117,27 @@ namespace Game.Network
         public void Shutdown()
             => _inner.Shutdown();
 
+        public void SubscribeAll()
+        {   }
+
+        public void UnsubscribeAll()
+        {   }
+
         private void SubscribeHost()
         {
-            _inner.OnDisconnecting += OnDisconnectingHandler;
-            _inner.OnDisconnected += OnDisconnectedHandler;
-
             SteamMatchmaking.OnLobbyCreated += OnLobbyCreatedHost;
-        }
-
-        private void SubscribeClient()
-        {
-            _inner.OnDisconnecting += OnDisconnectingHandler;
-            _inner.OnDisconnected += OnDisconnectedHandler;
         }
 
         private void UnsubscribeHost()
         {
-            if (_inner != null)
-            {
-                _inner.OnDisconnecting -= OnDisconnectingHandler;
-                _inner.OnDisconnected -= OnDisconnectedHandler;
-            }
-
             SteamMatchmaking.OnLobbyCreated -= OnLobbyCreatedHost;
         }
 
+        private void SubscribeClient()
+        {   }
+
         private void UnsubscribeClient()
-        {
-            if (_inner != null)
-            {
-                _inner.OnDisconnecting -= OnDisconnectingHandler;
-                _inner.OnDisconnected -= OnDisconnectedHandler;
-            }
-        }
+        {   }
 
         private void OnLobbyCreatedHost(Result result, Lobby lobby)
         {
@@ -167,6 +166,7 @@ namespace Game.Network
             }
 
             StopWaitingInvite();
+            SubscribeAll();
             SubscribeClient();
             _currentLobby = await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
         }
@@ -188,8 +188,13 @@ namespace Game.Network
                 UnsubscribeHost();
             else
                 UnsubscribeClient();
+            UnsubscribeAll();
 
             await StartWaitingInvite();
         }
+
+        private void OnConnectedHandler(ulong clientId) => OnConnected?.Invoke(clientId);
+        private void OnOtherClientConnectedHandler(ulong clientId) => OnOtherClientConnected?.Invoke(clientId);
+        private void OnOtherClientDisconnectedHandler(ulong clientId) => OnOtherClientDisconnected?.Invoke(clientId);
     }
 }
