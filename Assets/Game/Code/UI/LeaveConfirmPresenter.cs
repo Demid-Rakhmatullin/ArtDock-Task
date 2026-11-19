@@ -3,7 +3,7 @@ using Game.Network;
 using System;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
-using static Game.Global.InputGlobalActions;
+using static Game.Common.InputGlobalActions;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace Game.UI

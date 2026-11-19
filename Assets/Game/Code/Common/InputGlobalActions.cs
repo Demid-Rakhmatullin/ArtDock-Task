@@ -1,4 +1,4 @@
-namespace Game.Global
+namespace Game.Common
 {
     public static class InputGlobalActions
     {

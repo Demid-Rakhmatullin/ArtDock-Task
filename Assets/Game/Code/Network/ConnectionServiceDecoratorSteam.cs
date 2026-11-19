@@ -1,7 +1,9 @@
+using Game.Common;
 using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,10 +11,11 @@ using VContainer.Unity;
 
 namespace Game.Network
 {
-    class ConnectionServiceDecoratorSteam : IConnectionService, IStartable, ITickable
+    class ConnectionServiceDecoratorSteam : IConnectionService, IAsyncStartable, ITickable
     {
         readonly IConnectionService _inner;
         readonly GameNetworkConfig _config;
+        readonly SystemMessagesService _messagesService;
         readonly FacepunchTransport _transport;
 
         Lobby? _currentLobby;
@@ -22,17 +25,18 @@ namespace Game.Network
         public event Action OnDisconnecting;
         public event Action<bool> OnDisconnected;
 
-        public ConnectionServiceDecoratorSteam(IConnectionService inner, GameNetworkConfig config, 
-            NetworkTransport transport)
+        public ConnectionServiceDecoratorSteam(IConnectionService inner, GameNetworkConfig config,
+            SystemMessagesService messagesService, NetworkTransport transport)
         {
             _inner = inner;
             _config = config;
+            _messagesService = messagesService;
             _transport = (FacepunchTransport)transport;
         }
 
-        void IStartable.Start()
+        async Awaitable IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
-            StartWaitingInvite();
+            await StartWaitingInvite();
         }
 
         void ITickable.Tick()
@@ -48,13 +52,15 @@ namespace Game.Network
             }
         }
 
-        private void StartWaitingInvite()
+        private async Awaitable StartWaitingInvite()
         {
+            await Awaitable.WaitForSecondsAsync(_config.SteamInvitePingSeconds);
             _transport.Initialize();
 
             if (!SteamClient.IsValid)
             {
-                Debug.LogError($"Can't start Steam invitaion check. SteamClient.IsValid == false."); //todo: display message
+                Debug.LogError("Can't start Steam invitaion check. SteamClient.IsValid == false.");
+                _messagesService.DisplayMessage("Can't connect to Steam services. Please check that Steam is started.");
                 return;
             }
 
@@ -78,8 +84,8 @@ namespace Game.Network
 
             if (!innerResult || !SteamClient.IsValid)
             {
-                //todo: display message
-                Debug.LogError($"Can't start Steam host. Transport didn't start or SteamClient.IsValid == false.");
+                Debug.LogError("Can't start Steam host. Transport didn't start or SteamClient.IsValid == false.");
+                _messagesService.DisplayMessage("Can't connect to Steam services. Please check that Steam is started.");
                 return false;
             }
 
@@ -138,7 +144,8 @@ namespace Game.Network
         {
             if (result != Result.OK)
             {
-                Debug.LogError($"Lobby couldn't be created!, {result}"); //todo: display message
+                Debug.LogError($"Lobby couldn't be created!, {result}");
+                _messagesService.DisplayMessage("Can't create Steam lobby. Please check that your Steam account is capable to do that.");
                 return;
             }
 
@@ -154,7 +161,8 @@ namespace Game.Network
 
             if (!innerResult || !SteamClient.IsValid)
             {
-                Debug.LogError($"Can't start Steam connection after. Transport didn't start or SteamClient.IsValid == false."); //todo: display message
+                Debug.LogError($"Can't start Steam connection after accepting invite. Transport didn't start or SteamClient.IsValid == false.");
+                _messagesService.DisplayMessage("Can't connect to Steam host. Please check that your friend's host PC has stable connection.");
                 return;
             }
 
@@ -172,7 +180,7 @@ namespace Game.Network
             _currentLobby = null;
         }
 
-        private void OnDisconnectedHandler(bool isHost)
+        private async void OnDisconnectedHandler(bool isHost)
         {
             OnDisconnected?.Invoke(isHost);
 
@@ -181,7 +189,7 @@ namespace Game.Network
             else
                 UnsubscribeClient();
 
-            StartWaitingInvite();
+            await StartWaitingInvite();
         }
     }
 }

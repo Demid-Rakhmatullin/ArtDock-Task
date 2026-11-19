@@ -47,7 +47,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56106f17b00f2ab408e9a52800519fa5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkManagerData
-  <Config>k__BackingField: {fileID: 11400000, guid: 2730ff09091d5ef4ba959a934115d1c0, type: 2}
   <UnityTransport>k__BackingField: {fileID: 1995484524450116031}
   <SteamTransport>k__BackingField: {fileID: 3882756784815125778}
 --- !u!114 &7006193442706983990
@@ -72,7 +71,7 @@ MonoBehaviour:
       - {fileID: 11400000, guid: e41a2df2725760a4ebda9874408950bc, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
-    ConnectionApproval: 0
+    ConnectionApproval: 1
     ConnectionData: 
     EnableTimeResync: 0
     TimeResyncInterval: 30

@@ -1,3 +1,4 @@
+using Game.Common;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -39,6 +40,7 @@ namespace Game.Network
                         new ConnectionServiceDecoratorSteam(
                             r.Resolve<ConnectionServiceBasic>(),
                             r.Resolve<GameNetworkConfig>(),
+                            r.Resolve<SystemMessagesService>(),
                             _data.SteamTransport),
                         Lifetime.Singleton);
             }

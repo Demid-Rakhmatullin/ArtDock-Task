@@ -1,3 +1,4 @@
+using Game.Common;
 using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -9,18 +10,23 @@ namespace Game.Network
     {
         readonly GameNetworkManager _manager;
         readonly GameNetworkConfig _config;
+        readonly SystemMessagesService _messagesService;
 
         public event Action OnDisconnecting;
         public event Action<bool> OnDisconnected;
 
-        public ConnectionServiceBasic(GameNetworkManager manager, GameNetworkConfig config)
+        public ConnectionServiceBasic(GameNetworkManager manager, GameNetworkConfig config,
+            SystemMessagesService messagesService)
         {
             _manager = manager;
             _config = config;
+            _messagesService = messagesService;
         }
 
         public Task<bool> StartHost()
         {
+            SubscribeEarlyHost();
+
             if (_manager.StartHost())
             {
                 SubscribeHost();
@@ -29,6 +35,7 @@ namespace Game.Network
                 return Task.FromResult(true);
             }
 
+            UnsubscribeEarlyHost();
             return Task.FromResult(false);
         }
 
@@ -46,6 +53,16 @@ namespace Game.Network
         public void Shutdown()
             => _manager.Shutdown();
 
+        private void SubscribeEarlyHost()
+        {
+            _manager.ConnectionApprovalCallback = ApproveClientOnHost;
+        }
+
+        private void UnsubscribeEarlyHost()
+        {
+            _manager.ConnectionApprovalCallback = null;
+        }
+
         private void SubscribeHost()
         {
             //one-time subscriptions
@@ -56,20 +73,22 @@ namespace Game.Network
             _manager.OnClientStopped += OnClientStopped;
         }
 
-        private void SubscribeClient()
-        {
-            _manager.OnPreShutdown += OnPreShutdown;
-            _manager.OnClientStopped += OnClientStopped;
-        }
-
         private void UnsubscribeHost()
         {
             if (!_manager)
                 return;
 
+            UnsubscribeEarlyHost();
             _manager.OnClientConnectedCallback -= OnClientConnectedHost;
             _manager.OnPreShutdown -= OnPreShutdown;
-            _manager.OnClientStopped -= OnClientStopped;     
+            _manager.OnClientStopped -= OnClientStopped;
+        }
+
+        private void SubscribeClient()
+        {
+            _manager.OnClientDisconnectCallback += OnDisconnectClient;
+            _manager.OnPreShutdown += OnPreShutdown;
+            _manager.OnClientStopped += OnClientStopped;
         }
 
         private void UnsubscribeClient()
@@ -77,6 +96,7 @@ namespace Game.Network
             if (!_manager)
                 return;
 
+            _manager.OnClientDisconnectCallback -= OnDisconnectClient;
             _manager.OnPreShutdown -= OnPreShutdown;
             _manager.OnClientStopped -= OnClientStopped;
         }
@@ -91,14 +111,21 @@ namespace Game.Network
             }
         }
 
-        private void OnClientConnectedHost(ulong clientId)
+        private void ApproveClientOnHost(NetworkManager.ConnectionApprovalRequest request, 
+            NetworkManager.ConnectionApprovalResponse response)
         {
-            if (_manager.ConnectedClientsIds.Count > _config.MaxPlayersCount)
+            if (_manager.ConnectedClientsIds.Count + 1 > _config.MaxPlayersCount)
             {
-                _manager.DisconnectClient(clientId, "Too many players"); //todo: display message on client
+                response.Reason = "Too many players";
+                response.Approved = false;
                 return;
             }
 
+            response.Approved = true;
+        }
+
+        private void OnClientConnectedHost(ulong clientId)
+        {
             SpawnPlayer(clientId);
         }
 
@@ -106,6 +133,12 @@ namespace Game.Network
         {
             var playerGO = UnityEngine.Object.Instantiate(_config.PlayerPrefab);
             playerGO.SpawnAsPlayerObject(clientId);
+        }
+
+        private void OnDisconnectClient(ulong obj)
+        {
+            if (!string.IsNullOrEmpty(_manager.DisconnectReason))
+                _messagesService.DisplayMessage(_manager.DisconnectReason);
         }
 
         private void OnPreShutdown()
@@ -120,7 +153,8 @@ namespace Game.Network
             else
                 UnsubscribeClient();
 
-            SceneManager.LoadScene(0);
+            if (SceneManager.GetActiveScene().buildIndex != 0)
+                SceneManager.LoadScene(0);
         }
     }
 }

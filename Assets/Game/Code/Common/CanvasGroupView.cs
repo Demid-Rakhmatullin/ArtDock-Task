@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.UI
+namespace Game.Common
 {
     [RequireComponent(typeof(CanvasGroup))]
     class CanvasGroupView : MonoBehaviour
