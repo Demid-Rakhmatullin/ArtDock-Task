@@ -1,16 +1,22 @@
 using Game.Common;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
 
 namespace Game.Network
 {
+    using ApprovalRequest = NetworkManager.ConnectionApprovalRequest;
+
     class ConnectionServiceBasic : IConnectionService
     {
         readonly GameNetworkManager _manager;
         readonly GameNetworkConfig _config;
         readonly SystemMessagesService _messagesService;
+
+        Func<ApprovalRequest, (bool, string)> _outerApprove;
+        Func<ApprovalRequest, (bool, string)> IConnectionService.OuterApprove { set => _outerApprove = value; }
 
         public event Action<ulong> OnConnected;
         public event Action OnDisconnecting;
@@ -123,17 +129,34 @@ namespace Game.Network
             }
         }
 
-        private void ApproveClientOnHost(NetworkManager.ConnectionApprovalRequest request, 
+        private void ApproveClientOnHost(ApprovalRequest request, 
             NetworkManager.ConnectionApprovalResponse response)
         {
             if (_manager.ConnectedClientsIds.Count + 1 > _config.MaxPlayersCount)
             {
-                response.Reason = "Too many players";
-                response.Approved = false;
+                UnapproveResponse(response, "Too many players");
                 return;
             }
 
+            if (_outerApprove != null)
+            {
+                (bool result, string message) = _outerApprove(request);
+                if (!result)
+                {
+                    UnapproveResponse(response, message);
+                    return;
+                }
+            }
+
             response.Approved = true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void UnapproveResponse(NetworkManager.ConnectionApprovalResponse response, 
+            string message)
+        {
+            response.Reason = message;
+            response.Approved = false;
         }
 
         private void OnConnectionAll(NetworkManager manager, ConnectionEventData data)

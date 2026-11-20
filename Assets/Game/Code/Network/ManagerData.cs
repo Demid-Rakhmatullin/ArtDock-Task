@@ -10,5 +10,8 @@ namespace Game.Network
 
         [field: SerializeField] 
         public NetworkTransport SteamTransport { get; private set; }
+
+        [field: SerializeField]
+        public SharedDataSteam SteamDataPrefab { get; private set; }
     }
 }

@@ -49,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkManagerData
   <UnityTransport>k__BackingField: {fileID: 1995484524450116031}
   <SteamTransport>k__BackingField: {fileID: 3882756784815125778}
+  <SteamDataPrefab>k__BackingField: {fileID: -142063185003209749, guid: 5b0df9f8e01ba9843bcacdcaef09a2c9, type: 3}
 --- !u!114 &7006193442706983990
 MonoBehaviour:
   m_ObjectHideFlags: 0

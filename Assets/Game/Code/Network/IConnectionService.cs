@@ -1,10 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Unity.Netcode;
 
 namespace Game.Network
 {
     public interface IConnectionService
     {
+        internal Func<NetworkManager.ConnectionApprovalRequest, (bool, string)> OuterApprove { set; }
+
         event Action<ulong> OnConnected;
 
         event Action OnDisconnecting;

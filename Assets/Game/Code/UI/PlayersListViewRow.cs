@@ -12,5 +12,8 @@ namespace Game.UI
 
         [field: SerializeField]
         public TMP_Text Name { get; private set; }
+
+        [field: SerializeField]
+        public TMP_Text SteamId { get; private set; }
     }
 }

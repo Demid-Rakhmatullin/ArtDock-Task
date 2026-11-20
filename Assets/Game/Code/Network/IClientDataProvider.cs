@@ -1,7 +1,9 @@
+using UnityEngine;
+
 namespace Game.Network
 {
     interface IClientDataProvider
     {
-        void UpdateData(NetworkClientData data);
+        Awaitable UpdateData(NetworkClientData data);
     }
 }

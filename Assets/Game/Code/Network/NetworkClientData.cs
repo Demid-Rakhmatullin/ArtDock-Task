@@ -6,6 +6,8 @@ namespace Game.Network
 
         public string Name { get; internal set; }
 
+        public ulong? SteamId { get; internal set; }
+
         public NetworkClientData(ulong networkId)
         {
             this.networkId = networkId;

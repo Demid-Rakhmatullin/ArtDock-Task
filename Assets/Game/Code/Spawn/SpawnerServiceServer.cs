@@ -46,7 +46,7 @@ namespace Game.Spawn
                 _spawnPoint.position, 
                 randomPrefab.transform.rotation);
 
-            instance.Spawn();
+            instance.Spawn(true);
         }
 
         private void Despawn()

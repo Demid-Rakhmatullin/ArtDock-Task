@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game.Network
 {
@@ -31,15 +32,15 @@ namespace Game.Network
             _connection.OnDisconnected += OnDisconnected;
         }
 
-        private void OnConnected(ulong clientId)
+        private async void OnConnected(ulong clientId)
         {
             foreach (ulong id in _networkManager.ConnectedClientsIds)
-                AddClientData(id);
+                await AddClientData(id);
         }
 
-        private void OnOtherConnected(ulong clientId)
+        private async void OnOtherConnected(ulong clientId)
         {
-            AddClientData(clientId);
+            await AddClientData(clientId);
             OnClientsUpdated?.Invoke();
         }
 
@@ -56,12 +57,12 @@ namespace Game.Network
             _clientsIndexes.Clear();
         }
 
-        private void AddClientData(ulong clientId)
+        private async Awaitable AddClientData(ulong clientId)
         {
             //todo: Object pooling?
             var clientData = new NetworkClientData(clientId);
 
-            _dataProvider.UpdateData(clientData);
+            await _dataProvider.UpdateData(clientData);
 
             _clientsIndexes.Add(clientId, _clients.Count);
             _clients.Add(clientData);

@@ -32,6 +32,11 @@ namespace Game.Network
             {
                 NetworkConfig.NetworkTransport = _data.SteamTransport;
 
+                builder.Register<ClientDataProviderSteam>(Lifetime.Singleton)
+                    .WithParameter(typeof(SharedDataSteam), _data.SteamDataPrefab)
+                    .AsImplementedInterfaces()
+                    .AsSelf();
+
                 builder.Register<ConnectionServiceBasic>(Lifetime.Transient)
                     .WithParameter(typeof(GameNetworkManager), this)
                     .AsSelf();
@@ -40,21 +45,24 @@ namespace Game.Network
                         new ConnectionServiceDecoratorSteam(
                             r.Resolve<ConnectionServiceBasic>(),
                             r.Resolve<GameNetworkConfig>(),
+                            this,
                             r.Resolve<SystemMessagesService>(),
-                            _data.SteamTransport),
+                            _data.SteamTransport,
+                            r.Resolve<ClientDataProviderSteam>()),
                         Lifetime.Singleton);
             }
             else
             {
                 NetworkConfig.NetworkTransport = _data.UnityTransport;
 
+                builder.Register<ClientDataProviderSimple>(Lifetime.Singleton)
+                    .AsImplementedInterfaces();
+
                 builder.Register<ConnectionServiceBasic>(Lifetime.Singleton) 
                     .WithParameter(typeof(GameNetworkManager), this)
                     .AsImplementedInterfaces();
             }
 
-            builder.Register<ClientDataProviderSimple>(Lifetime.Singleton)
-                .AsImplementedInterfaces();
             builder.Register<NetworkClientsService>(Lifetime.Singleton)
                 .WithParameter(typeof(GameNetworkManager), this)
                 .AsImplementedInterfaces();

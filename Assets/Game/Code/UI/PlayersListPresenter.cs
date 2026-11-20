@@ -62,6 +62,7 @@ namespace Game.UI
                     var player = _players.List[i];
                     row.Number.text = (i + 1).ToString();
                     row.Name.text = player.Name;
+                    row.SteamId.text = player?.SteamId.ToString();
 
                     row.Show();
                 }

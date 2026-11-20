@@ -11,16 +11,23 @@ using VContainer.Unity;
 
 namespace Game.Network
 {
+    using ApprovalRequest = NetworkManager.ConnectionApprovalRequest;
+
     class ConnectionServiceDecoratorSteam : IConnectionService, IAsyncStartable, ITickable
     {
         readonly IConnectionService _inner;
         readonly GameNetworkConfig _config;
+        readonly GameNetworkManager _manager;
         readonly SystemMessagesService _messagesService;
         readonly FacepunchTransport _transport;
+        readonly ClientDataProviderSteam _clientDataProvider;
 
         Lobby? _currentLobby;
         bool _waitingInvite;
         float _invitePingTimer;
+
+        Func<ApprovalRequest, (bool, string)> _outerApprove;
+        Func<ApprovalRequest, (bool, string)> IConnectionService.OuterApprove { set => _outerApprove = value; }
 
         public event Action<ulong> OnConnected;
         public event Action OnDisconnecting;
@@ -29,16 +36,21 @@ namespace Game.Network
         public event Action<ulong> OnOtherClientDisconnected;
 
         public ConnectionServiceDecoratorSteam(IConnectionService inner, GameNetworkConfig config,
-            SystemMessagesService messagesService, NetworkTransport transport)
+            GameNetworkManager manager, SystemMessagesService messagesService, NetworkTransport transport,
+            ClientDataProviderSteam clientDataProvider)
         {
             _inner = inner;
             _config = config;
+            _manager = manager;
             _messagesService = messagesService;
             _transport = (FacepunchTransport)transport;
+            _clientDataProvider = clientDataProvider;
         }
 
         async Awaitable IAsyncStartable.StartAsync(CancellationToken cancellation)
         {
+            _inner.OuterApprove = ApproveClientOnHost;
+
             //consider decorator has the same lifetime as decorated instance
             _inner.OnDisconnecting += OnDisconnectingHandler;
             _inner.OnDisconnected += OnDisconnectedHandler;
@@ -87,10 +99,10 @@ namespace Game.Network
 
         public async Task<bool> StartHost()
         {
-            if (SteamClient.IsValid) 
+            if (SteamClient.IsValid)
                 _transport.Shutdown(); //clean up transport before starting host
 
-            bool innerResult = await _inner.StartHost();      
+            bool innerResult = await _inner.StartHost();  
 
             if (!innerResult || !SteamClient.IsValid)
             {
@@ -153,9 +165,40 @@ namespace Game.Network
             lobby.SetJoinable(true);
         }
 
-        private async void OnLobbyJoinRequestedClient(Lobby lobby, SteamId id)
+        private (bool, string) ApproveClientOnHost(ApprovalRequest request)
         {
-            _transport.targetSteamId = id;
+            byte[] payload = null;
+            bool nonHost = request.ClientNetworkId != NetworkManager.ServerClientId;
+
+            if (nonHost)
+            {
+                payload = request.Payload;                
+                if (payload == null || payload.Length != sizeof(ulong))
+                    return (false, "Invalid Steam request. Please check that you are logged in your Steam account.");
+            }
+
+            if (_outerApprove != null)
+            {
+                (bool outerResult, string outerMessage) = _outerApprove(request);
+                if (!outerResult)
+                    return (outerResult, outerMessage);
+            }
+
+            if (nonHost)
+            {
+                ulong steamId = BitConverter.ToUInt64(payload, 0);
+                _clientDataProvider.AddClient(request.ClientNetworkId, steamId);
+            }
+
+            return (true, null);
+        }
+
+        private async void OnLobbyJoinRequestedClient(Lobby lobby, SteamId hostSteamId)
+        {
+            _transport.targetSteamId = hostSteamId;
+            _manager.NetworkConfig.ConnectionData = 
+                BitConverter.GetBytes(SteamClient.SteamId.Value);
+
             bool innerResult = _inner.StartClient();            
 
             if (!innerResult || !SteamClient.IsValid)
@@ -171,6 +214,27 @@ namespace Game.Network
             _currentLobby = await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
         }
 
+        private void OnConnectedHandler(ulong clientId)
+        {
+            if (_manager.IsHost)
+            {
+                _clientDataProvider.InitializeHost();
+                _clientDataProvider.AddClient(_manager.LocalClientId, SteamClient.SteamId.Value);
+            }
+            else
+                _clientDataProvider.InitializeClient();
+
+            OnConnected?.Invoke(clientId);
+        }
+
+        private void OnOtherClientDisconnectedHandler(ulong clientId)
+        {
+            OnOtherClientDisconnected?.Invoke(clientId);
+
+            if (_manager.IsHost)
+                _clientDataProvider.RemoveClient(clientId);
+        }
+
         private void OnDisconnectingHandler()
         {
             OnDisconnecting?.Invoke();
@@ -183,7 +247,7 @@ namespace Game.Network
         private async void OnDisconnectedHandler(bool isHost)
         {
             OnDisconnected?.Invoke(isHost);
-
+            
             if (isHost)
                 UnsubscribeHost();
             else
@@ -193,8 +257,6 @@ namespace Game.Network
             await StartWaitingInvite();
         }
 
-        private void OnConnectedHandler(ulong clientId) => OnConnected?.Invoke(clientId);
         private void OnOtherClientConnectedHandler(ulong clientId) => OnOtherClientConnected?.Invoke(clientId);
-        private void OnOtherClientDisconnectedHandler(ulong clientId) => OnOtherClientDisconnected?.Invoke(clientId);
     }
 }
