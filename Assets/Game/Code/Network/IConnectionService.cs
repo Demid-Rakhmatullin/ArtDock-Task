@@ -18,9 +18,17 @@ namespace Game.Network
 
         event Action<ulong> OnOtherClientDisconnected;
 
+        event Action OnSceneChangeStarted;
+
+        event Action OnSceneChangeFinished;
+
+        bool IsHost { get; }
+
         Task<bool> StartHost();
 
         bool StartClient();
+
+        void StartGameplay();
 
         void Shutdown();
     }

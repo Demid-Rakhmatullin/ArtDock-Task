@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Network.GameNetworkConfig
   <PlayerPrefab>k__BackingField: {fileID: -8651774280117347735, guid: 14d3ab3f8ba641d46aca659635ac9aa1, type: 3}
   gameplayScene: {fileID: 102900000, guid: 99c9720ab356a0642a771bea13969a05, type: 3}
+  lobbyScene: {fileID: 102900000, guid: 606204d8124f545408d2714f8425a008, type: 3}
   <GameplaySceneName>k__BackingField: Playground
+  <LobbySceneName>k__BackingField: Lobby
   <MaxPlayersCount>k__BackingField: 4
-  <UseSteam>k__BackingField: 1
+  <UseSteam>k__BackingField: 0
   <SteamInvitePingSeconds>k__BackingField: 0.3

@@ -5,14 +5,14 @@ using VContainer.Unity;
 namespace Game.UI
 {
     [DisallowMultipleComponent]
-    class StartScreenScope : LifetimeScope
+    class LobbyScope : LifetimeScope
     {
-        [SerializeField] StartScreenView view;
+        [SerializeField] LobbyView view;
 
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterComponent(view);
-            builder.RegisterEntryPoint<StartScreenPresenter>();
+            builder.RegisterEntryPoint<LobbyPresenter>();
         }
     }
 }

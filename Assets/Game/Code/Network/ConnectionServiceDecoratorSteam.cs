@@ -34,6 +34,10 @@ namespace Game.Network
         public event Action<bool> OnDisconnected;
         public event Action<ulong> OnOtherClientConnected;
         public event Action<ulong> OnOtherClientDisconnected;
+        public event Action OnSceneChangeStarted;
+        public event Action OnSceneChangeFinished;
+
+        public bool IsHost => _inner.IsHost;
 
         public ConnectionServiceDecoratorSteam(IConnectionService inner, GameNetworkConfig config,
             GameNetworkManager manager, SystemMessagesService messagesService, NetworkTransport transport,
@@ -57,6 +61,8 @@ namespace Game.Network
             _inner.OnConnected += OnConnectedHandler;
             _inner.OnOtherClientConnected += OnOtherClientConnectedHandler;
             _inner.OnOtherClientDisconnected += OnOtherClientDisconnectedHandler;
+            _inner.OnSceneChangeStarted += OnSceneChangeStartedHandler;
+            _inner.OnSceneChangeFinished += OnSceneChangeFinishedHandler;
 
             await StartWaitingInvite();
         }
@@ -125,6 +131,9 @@ namespace Game.Network
 
             return true;
         }
+
+        public void StartGameplay()
+            => _inner.StartGameplay();
 
         public void Shutdown()
             => _inner.Shutdown();
@@ -216,7 +225,7 @@ namespace Game.Network
 
         private void OnConnectedHandler(ulong clientId)
         {
-            if (_manager.IsHost)
+            if (_inner.IsHost)
             {
                 _clientDataProvider.InitializeHost();
                 _clientDataProvider.AddClient(_manager.LocalClientId, SteamClient.SteamId.Value);
@@ -231,7 +240,7 @@ namespace Game.Network
         {
             OnOtherClientDisconnected?.Invoke(clientId);
 
-            if (_manager.IsHost)
+            if (_inner.IsHost)
                 _clientDataProvider.RemoveClient(clientId);
         }
 
@@ -258,5 +267,7 @@ namespace Game.Network
         }
 
         private void OnOtherClientConnectedHandler(ulong clientId) => OnOtherClientConnected?.Invoke(clientId);
+        private void OnSceneChangeStartedHandler() => OnSceneChangeStarted?.Invoke();
+        private void OnSceneChangeFinishedHandler() => OnSceneChangeFinished?.Invoke();
     }
 }

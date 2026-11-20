@@ -3,12 +3,12 @@ using VContainer.Unity;
 
 namespace Game.UI
 {
-    class StartScreenPresenter : IStartable
+    class MenuPresenter : IStartable
     {
-        readonly StartScreenView _view;
+        readonly MenuView _view;
         readonly IConnectionService _connection;
 
-        public StartScreenPresenter(StartScreenView view, IConnectionService connection)
+        public MenuPresenter(MenuView view, IConnectionService connection)
         {
             _view = view;
             _connection = connection;

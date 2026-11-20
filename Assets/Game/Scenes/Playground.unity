@@ -2998,10 +2998,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.UI.PlayersListScope
   parentReference:
-    TypeName: Game.Gameplay.GameplayScope
+    TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
   _view: {fileID: 2134185907}
+  _showByKey: 1
 --- !u!1001 &4219772976832181148
 PrefabInstance:
   m_ObjectHideFlags: 0

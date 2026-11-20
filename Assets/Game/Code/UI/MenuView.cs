@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace Game.UI
 {
     [DisallowMultipleComponent]
-    class StartScreenView : MonoBehaviour
+    class MenuView : MonoBehaviour
     {
         [field: SerializeField]
         public Button CreateBtn { get; private set; }

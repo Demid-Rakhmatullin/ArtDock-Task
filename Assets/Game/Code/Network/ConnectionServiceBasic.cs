@@ -3,6 +3,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Game.Network
@@ -15,6 +16,8 @@ namespace Game.Network
         readonly GameNetworkConfig _config;
         readonly SystemMessagesService _messagesService;
 
+        bool _gameplayStarted; //todo: try to keep ConnectionService abstracted of gameplay?
+
         Func<ApprovalRequest, (bool, string)> _outerApprove;
         Func<ApprovalRequest, (bool, string)> IConnectionService.OuterApprove { set => _outerApprove = value; }
 
@@ -23,6 +26,10 @@ namespace Game.Network
         public event Action<bool> OnDisconnected;
         public event Action<ulong> OnOtherClientConnected;
         public event Action<ulong> OnOtherClientDisconnected;
+        public event Action OnSceneChangeStarted;
+        public event Action OnSceneChangeFinished;
+
+        public bool IsHost => _manager.IsHost;
 
         public ConnectionServiceBasic(GameNetworkManager manager, GameNetworkConfig config,
             SystemMessagesService messagesService)
@@ -34,18 +41,19 @@ namespace Game.Network
 
         public Task<bool> StartHost()
         {
-            SubscribeEarlyHost();
+            SubscribeBeforeConnectionHost();
 
             if (_manager.StartHost())
             {
                 SubscribeAll();
+                SubscribeLobbyHost();
                 SubscribeHost();
-                _manager.SceneManager.LoadScene(_config.GameplaySceneName, LoadSceneMode.Single);
+                _manager.SceneManager.LoadScene(_config.LobbySceneName, LoadSceneMode.Single);
 
                 return Task.FromResult(true);
             }
 
-            UnsubscribeEarlyHost();
+            UnsubscribeBeforeConnectionHost();
             return Task.FromResult(false);
         }
 
@@ -61,39 +69,66 @@ namespace Game.Network
             return false;
         }
 
+        public void StartGameplay()
+        {
+            _gameplayStarted = true;
+            SubscribeGameplayHost();
+            _manager.SceneManager.LoadScene(_config.GameplaySceneName, LoadSceneMode.Single);
+        }
+
         public void Shutdown()
             => _manager.Shutdown();
 
         private void SubscribeAll()
         {
+            _manager.SceneManager.OnSceneEvent += OnSceneEventAll; //auto unsubscribe on disconnect
+
             _manager.OnConnectionEvent += OnConnectionAll;
             _manager.OnPreShutdown += OnPreShutdownAll;
-            _manager.OnClientStopped += OnClientStoppedAll;
+            _manager.OnClientStopped += OnStoppedAll;
         }
 
         private void UnsubscribeAll()
         {
             _manager.OnConnectionEvent -= OnConnectionAll;
             _manager.OnPreShutdown -= OnPreShutdownAll;
-            _manager.OnClientStopped -= OnClientStoppedAll;
+            _manager.OnClientStopped -= OnStoppedAll;
         }
 
-        private void SubscribeEarlyHost()
+        private void SubscribeBeforeConnectionHost()
         {
             _manager.ConnectionApprovalCallback = ApproveClientOnHost;
         }
 
-        private void UnsubscribeEarlyHost()
+        private void UnsubscribeBeforeConnectionHost()
         {
             _manager.ConnectionApprovalCallback = null;
         }
 
         private void SubscribeHost()
         {
-            //one-time subscriptions
-            _manager.SceneManager.OnSceneEvent += OnSceneEventHost;
-
             _manager.OnConnectionEvent += OnConnectionHost;
+            _manager.OnClientStopped += OnStoppedHost;
+        }
+
+        private void SubscribeLobbyHost()
+        {
+            _manager.SceneManager.OnSceneEvent += OnLobbySceneEventHost;
+        }
+
+        private void UnsubscribeLobbyHost()
+        {
+            _manager.SceneManager.OnSceneEvent -= OnLobbySceneEventHost;
+        }
+
+        private void SubscribeGameplayHost()
+        {
+            _manager.SceneManager.OnSceneEvent += OnGameplaySceneEventHost;
+        }
+
+        private void UnsubscribeGameplayHost()
+        {
+            _manager.SceneManager.OnSceneEvent -= OnGameplaySceneEventHost;
         }
 
         private void UnsubscribeHost()
@@ -101,13 +136,15 @@ namespace Game.Network
             if (!_manager)
                 return;
 
-            UnsubscribeEarlyHost();
+            UnsubscribeBeforeConnectionHost();
             _manager.OnConnectionEvent -= OnConnectionHost;
+            _manager.OnClientStopped -= OnStoppedHost;
         }
 
         private void SubscribeClient()
         {
             _manager.OnConnectionEvent += OnConnectionClient;
+            _manager.OnClientStopped += OnStoppedClient;
         }
 
         private void UnsubscribeClient()
@@ -116,15 +153,41 @@ namespace Game.Network
                 return;
 
             _manager.OnConnectionEvent -= OnConnectionClient;
+            _manager.OnClientStopped -= OnStoppedClient;
         }
 
-        private void OnSceneEventHost(SceneEvent sceneEvent)
+        private void OnSceneEventAll(SceneEvent sceneEvent)
+        {
+            switch (sceneEvent.SceneEventType)
+            {
+                case SceneEventType.Load:
+                    OnSceneChangeStarted?.Invoke();
+                    break;
+                case SceneEventType.LoadEventCompleted:
+                    OnSceneChangeFinished?.Invoke();
+                    break;
+            }
+        }
+
+        private void OnLobbySceneEventHost(SceneEvent sceneEvent)
         {
             switch (sceneEvent.SceneEventType)
             {
                 case SceneEventType.LoadEventCompleted:
-                    SpawnPlayer(sceneEvent.ClientId);
+                    UnsubscribeLobbyHost();
                     OnConnected?.Invoke(sceneEvent.ClientId);
+                    break;
+            }
+        }
+
+        private void OnGameplaySceneEventHost(SceneEvent sceneEvent)
+        {
+            switch (sceneEvent.SceneEventType)
+            {
+                case SceneEventType.LoadEventCompleted:
+                    UnsubscribeGameplayHost();
+                    foreach (var clientId in _manager.ConnectedClientsIds)
+                        SpawnPlayer(clientId);                    
                     break;
             }
         }
@@ -177,7 +240,8 @@ namespace Game.Network
             switch (data.EventType)
             {
                 case ConnectionEvent.ClientConnected:
-                    SpawnPlayer(data.ClientId);
+                    if (_gameplayStarted)
+                        SpawnPlayer(data.ClientId);
                     break;
             }
         }
@@ -199,18 +263,24 @@ namespace Game.Network
         private void OnPreShutdownAll()
             => OnDisconnecting?.Invoke();
 
-        private void OnClientStoppedAll(bool isHost)
+        private void OnStoppedAll(bool isHost)
         {
             OnDisconnected?.Invoke(isHost);
-
-            if (isHost)
-                UnsubscribeHost();
-            else
-                UnsubscribeClient();
             UnsubscribeAll();
 
             if (SceneManager.GetActiveScene().buildIndex != 0)
                 SceneManager.LoadScene(0);
+        }
+
+        private void OnStoppedHost(bool isHost)
+        {
+            _gameplayStarted = false;
+            UnsubscribeHost();
+        }
+
+        private void OnStoppedClient(bool isHost)
+        {
+            UnsubscribeClient();
         }
 
         private void SpawnPlayer(ulong clientId)

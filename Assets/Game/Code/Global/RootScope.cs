@@ -14,12 +14,15 @@ namespace Game.Global
 
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.RegisterInstance(InputSystem.actions); //project-wide input asset
+            builder.RegisterInstance(InputSystem.actions); //project-wide input actions
             builder.RegisterEntryPoint<SystemMessagesService>(Lifetime.Singleton)
                 .AsSelf();
 
             var networkManager = FindAnyObjectByType<GameNetworkManager>();
             networkManager.Install(builder, networkConfig);
+
+            builder.RegisterEntryPoint<LoadingScreenService>(Lifetime.Singleton)
+                .AsSelf();
         }
     }
 }

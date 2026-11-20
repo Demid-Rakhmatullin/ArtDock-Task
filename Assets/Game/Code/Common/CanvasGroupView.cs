@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game.Common
 {
     [RequireComponent(typeof(CanvasGroup))]
-    class CanvasGroupView : MonoBehaviour
+    public class CanvasGroupView : MonoBehaviour
     {
         [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] bool hideOnStart;
@@ -15,7 +15,7 @@ namespace Game.Common
             canvasGroup = GetComponent<CanvasGroup>();
         }
 
-        private void Start()
+        private void Awake()
         {
             if (hideOnStart)
                 Hide();
