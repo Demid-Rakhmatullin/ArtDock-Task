@@ -18,3 +18,12 @@ Player movement and camera use owner-authorative approach for input responsivene
 Knowing issues:
 - When player leaves Steam session for other players he still remains in the game for a noticeable time. May be Steam doesn't notified that the player has left by himself and is waiting for connection timeout.
 - Connection service has a dependency on the gameplay loop: "non-network scene - lobby - game scene". In my opinion this isn't connection manager's responsibility and should be separated into other classes.
+
+Controls:
+- Movement: WASD
+- Camera: Mouse move
+- Grab/Release: Mouse Left
+- Throw: Mouse Right
+- Spawn box: Q
+- Delete grabbed box: C
+- Player list: Hold TAB
